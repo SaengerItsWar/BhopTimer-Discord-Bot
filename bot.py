@@ -22,7 +22,7 @@ DB_IP    = config["db_ip"]
 DB_DB    = config["db_database"]
 DB_USER  = config["db_user"]
 DB_PASS  = config["db_pass"]
-TABLE_PREFIX = config["db_prefix"]
+TABLE_PREFIX = config["table_prefix"]
 
 bot = commands.Bot(command_prefix=PREFIX)
 SERVER_ADDRESS = (IP, PORT)
