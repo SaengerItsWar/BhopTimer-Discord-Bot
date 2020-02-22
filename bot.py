@@ -22,6 +22,7 @@ DB_IP    = config["db_ip"]
 DB_DB    = config["db_database"]
 DB_USER  = config["db_user"]
 DB_PASS  = config["db_pass"]
+TABLE_PREFIX = config["db_prefix"]
 
 bot = commands.Bot(command_prefix=PREFIX)
 SERVER_ADDRESS = (IP, PORT)
@@ -46,7 +47,7 @@ async def status_task():
     
 @bot.command()
 async def wr(ctx, arg):
-    sql = "SELECT time, jumps, sync, strafes, date, u.name FROM playertimes p, users u WHERE map = '" + arg + "' AND track = 0 AND style = 0 AND u.auth = p.auth ORDER BY time ASC LIMIT 1"
+    sql = "SELECT time, jumps, sync, strafes, date, u.name FROM "+TABLE_PREFIX+"playertimes p, "+TABLE_PREFIX+"users u WHERE map = '" + arg + "' AND track = 0 AND style = 0 AND u.auth = p.auth ORDER BY time ASC LIMIT 1"
     conn = mysql.connector.connect(**db)
     cursor = conn.cursor()
     cursor.execute(sql)
@@ -83,7 +84,7 @@ async def wr(ctx, arg):
     
 @bot.command()
 async def bwr(ctx, arg):
-    sql = "SELECT time, jumps, sync, strafes, date, u.name FROM playertimes p, users u WHERE map = '" + arg + "' AND track = 1 AND style = 0 AND u.auth = p.auth ORDER BY time ASC LIMIT 1"
+    sql = "SELECT time, jumps, sync, strafes, date, u.name FROM "+TABLE_PREFIX+"playertimes p, "+TABLE_PREFIX+"users u WHERE map = '" + arg + "' AND track = 1 AND style = 0 AND u.auth = p.auth ORDER BY time ASC LIMIT 1"
     conn = mysql.connector.connect(**db)
     cursor = conn.cursor()
     cursor.execute(sql)
