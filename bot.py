@@ -4,6 +4,7 @@ import valve.source.a2s
 import asyncio
 import math
 import json
+import random
 from steam import SteamID
 from datetime import datetime
 from discord.ext import commands
