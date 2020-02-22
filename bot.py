@@ -47,7 +47,7 @@ async def status_task():
     
 @bot.command()
 async def wr(ctx, arg):
-    sql = "SELECT time, jumps, sync, strafes, date, u.name FROM " + TABLE_PREFIX + "playertimes p, " + TABLE_PREFIX + "users u WHERE map = '" + arg + "' AND track = 0 AND style = 0 AND u.auth = p.auth ORDER BY time ASC LIMIT 1"
+    sql = "SELECT time, jumps, sync, strafes, date, u.name, p.auth FROM " + TABLE_PREFIX + "playertimes p, " + TABLE_PREFIX + "users u WHERE map = '" + arg + "' AND track = 0 AND style = 0 AND u.auth = p.auth ORDER BY time ASC LIMIT 1"
     conn = mysql.connector.connect(**db)
     cursor = conn.cursor()
     cursor.execute(sql)
@@ -58,6 +58,7 @@ async def wr(ctx, arg):
     strafes = str(results[3])
     timestamp = results[4]
     user = str(results[5]) 
+    auth = results[6]
     
     minutes = time / 60
     i, d = divmod(minutes, 1)
@@ -66,12 +67,13 @@ async def wr(ctx, arg):
     seconds = round(seconds, 3)
     formatted = str(minutes) + ":" + str(seconds) 
     date_time = datetime.fromtimestamp(timestamp)
-    d = date_time.strftime("%d/%m/%Y")    
+    d = date_time.strftime("%d/%m/%Y")  
+    link = "http://www.steamcommunity.com/profiles/" + str(SteamID(auth))    
     
     embed=discord.Embed(title="Map Record", description=arg, color=0x1183f4)
     embed.set_thumbnail(url=ICON)
     embed.set_footer(text="Join: steam://connect/" + IP + ":" + str(PORT))
-    embed.add_field(name="Player‎‎", value=user, inline=True)
+    embed.add_field(name="Player‎‎", value="[" + user + "](" + link + ")", inline=True)
     embed.add_field(name="Time", value=formatted, inline=True)
     embed.add_field(name="Jumps", value=jumps, inline=True)
     embed.add_field(name="Sync", value=sync, inline=True)
@@ -84,7 +86,7 @@ async def wr(ctx, arg):
     
 @bot.command()
 async def bwr(ctx, arg):
-    sql = "SELECT time, jumps, sync, strafes, date, u.name FROM " + TABLE_PREFIX + "playertimes p, " + TABLE_PREFIX + "users u WHERE map = '" + arg + "' AND track = 1 AND style = 0 AND u.auth = p.auth ORDER BY time ASC LIMIT 1"
+    sql = "SELECT time, jumps, sync, strafes, date, u.name, p.auth FROM " + TABLE_PREFIX + "playertimes p, " + TABLE_PREFIX + "users u WHERE map = '" + arg + "' AND track = 1 AND style = 0 AND u.auth = p.auth ORDER BY time ASC LIMIT 1"
     conn = mysql.connector.connect(**db)
     cursor = conn.cursor()
     cursor.execute(sql)
@@ -95,6 +97,7 @@ async def bwr(ctx, arg):
     strafes = str(results[3])
     timestamp = results[4]
     user = str(results[5]) 
+    auth = results[6]
     
     minutes = time / 60
     i, d = divmod(minutes, 1)
@@ -104,10 +107,11 @@ async def bwr(ctx, arg):
     formatted = str(minutes) + ":" + str(seconds) 
     date_time = datetime.fromtimestamp(timestamp)
     d = date_time.strftime("%d/%m/%Y")  
-    
+    link = "http://www.steamcommunity.com/profiles/" + str(SteamID(auth))
+     
     embed=discord.Embed(title="Bonus Record", description=arg, color=0xe79f0c)
     embed.set_footer(text="Join: steam://connect/" + IP + ":" + str(PORT))
-    embed.add_field(name="Player‎‎", value=user, inline=True)
+    embed.add_field(name="Player‎‎", value="[" + user + "](" + link + ")", inline=True)
     embed.add_field(name="Time", value=formatted, inline=True)
     embed.add_field(name="Jumps", value=jumps, inline=True)
     embed.add_field(name="Sync", value=sync, inline=True)
