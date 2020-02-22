@@ -4,4 +4,5 @@ Work in progress Discord bot with various commands, based off https://github.com
 Current features: 
 - !wr
 - !bwr
+- !ssj
 - Bot status shows server player count
