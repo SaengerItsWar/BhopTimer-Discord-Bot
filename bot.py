@@ -1,6 +1,5 @@
 import discord
 import mysql.connector
-import random
 import valve.source.a2s
 import asyncio
 import math
@@ -43,10 +42,6 @@ async def status_task():
             info = server.info()
             await bot.change_presence(activity=discord.Game(name="on " + SERVER + " with {player_count}".format(**info) + " players"))
             await asyncio.sleep(60)
-
-@bot.command()
-async def test(ctx):
-    await ctx.send("Working")
     
 @bot.command()
 async def wr(ctx, arg):
@@ -120,11 +115,11 @@ async def bwr(ctx, arg):
     
     conn.close()
     cursor.close()
-
+    
 @bot.command()
 @commands.cooldown(1, 15, commands.BucketType.user)
 async def ssj(ctx):
     num = random.randint(480,700)
     await ctx.send(ctx.message.author.mention + " has a SSJ of " + str(num))
-
+    
 bot.run(TOKEN)
