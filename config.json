@@ -10,5 +10,5 @@
     "db_user": "username",
     "db_pass": "password",
     "table_prefix": "",
-	"webstats_url": "https://mysite.com/stats"
+    "webstats_url": "https://mysite.com/stats"
 }
