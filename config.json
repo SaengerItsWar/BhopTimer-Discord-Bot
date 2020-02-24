@@ -9,5 +9,6 @@
     "db_database": "database",
     "db_user": "username",
     "db_pass": "password",
-    "table_prefix": ""
+    "table_prefix": "",
+	"webstats_url": "https://mysite.com/stats"
 }
