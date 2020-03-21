@@ -37,14 +37,13 @@ db = {
     
 @bot.event
 async def on_ready():
-    bot.loop.create_task(status_task())
+    status_task.start()
  
+@tasks.loop(seconds=60.0)
 async def status_task():
     with valve.source.a2s.ServerQuerier(SERVER_ADDRESS) as server:
-        while True:
-            info = server.info()
-            await bot.change_presence(activity=discord.Game(name="on " + SERVER + " with {player_count}".format(**info) + " players"))
-            await asyncio.sleep(60)
+        info = server.info()
+        await bot.change_presence(activity=discord.Game(name="on " + SERVER + " with {player_count}".format(**info) + " players"))
     
 @bot.command(aliases=['record', 'mtop', 'maptop', 'maprecord'])
 async def wr(ctx, arg):
