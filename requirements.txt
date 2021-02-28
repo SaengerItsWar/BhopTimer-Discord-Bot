@@ -1,4 +1,4 @@
 discord
 python-valve
-steamid
+steam
 mysql
