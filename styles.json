@@ -1,0 +1,97 @@
+{
+	"0": {
+		"style": "Normal",
+		"alias": [
+			"normal", 
+			"n",
+			"nm"
+		]
+	},
+	"1": {
+		"style": "Sideways",
+		"alias": [
+			"sideways",
+			"side",
+			"sw"
+		]
+	},
+	"2": {
+		"style": "W-Only",
+		"alias": [
+			"w",
+			"wonly"
+		]
+	},
+	"3": {
+		"style": "Scroll",
+		"alias": [
+			"scroll",
+			"legit",
+			"scr",
+			"le"
+		]
+	},
+	"4": {
+		"style": "400 Velocity",
+		"alias": [
+			"400",
+			"400velocity",
+			"400vel",
+			"vel",
+			"400v"
+		]
+	},
+	"5": {
+		"style": "Half-Sideways",
+		"alias": [
+			"hsw",
+			"halfside",
+			"halfsideways"
+		]
+	},
+	"6": {
+		"style": "D-Only",
+		"alias": [
+			"d",
+			"donly"
+		]
+	},
+	"7": {
+		"style": "Low Gravity",
+		"alias": [
+			"lowgravity",
+			"lowgrav",
+			"lg",
+			"lowg"
+		]
+	},
+	"8": {
+		"style": "Slow Motion",
+		"alias": [
+			"slow",
+			"slowmotion",
+			"slowmo"
+		]
+	},
+	"9": {
+		"style": "A-Only",
+		"alias": [
+			"a",
+			"aonly"
+		]
+	},
+	"10": {
+		"style": "Segmented",
+		"alias": [
+			"seg",
+			"segment",
+			"segmented"
+		]
+	},
+	"11": {
+		"style": "TAS",
+		"alias": [
+			"tas"
+		]
+	}
+}
