@@ -7,10 +7,22 @@ import json
 import random
 from steam.steamid import SteamID
 from datetime import datetime
-from discord.ext import tasks, commands
-
+from discord.ext import tasks, commands 
+ 
+stylename = []
+alias = []
+ 
+def loadStyles(style):
+    styles = json.load(style) 
+    for i in styles: 
+        stylename.append(styles[i]['style'])
+        alias.append(styles[i]['alias'])
+           
+with open("styles.json") as styles:
+    loadStyles(styles)
+    
 with open("config.json") as cfg:
-    config = json.load(cfg)
+    config = json.load(cfg)  
     
 TOKEN        = config["bot_token"]
 PREFIX       = config["command_prefix"]
@@ -46,13 +58,13 @@ async def status_task():
         await bot.change_presence(activity=discord.Game(name="{map}".format(**info)))
     
 @bot.command(aliases=['record', 'mtop', 'maptop', 'maprecord'])
-async def wr(ctx, arg):      
-    await searchRecord(ctx, arg, 0)
-    
+async def wr(ctx, arg, arg2=None):      
+    await searchRecord(ctx, arg, 0, arg2)
+
 @bot.command(aliases=['brecord', 'btop', 'bonustop', 'bonusrecord'])
-async def bwr(ctx, arg):
-    await searchRecord(ctx, arg, 1)
-   
+async def bwr(ctx, arg, arg2=None):
+    await searchRecord(ctx, arg, 1, arg2)
+
 @bot.command()
 @commands.cooldown(1, 15, commands.BucketType.user)
 async def records(ctx, arg):
@@ -131,28 +143,36 @@ async def records_cooldown(ctx, error):
         msg = 'This command is on cooldown, please try again in {:.2f}s'.format(error.retry_after)
         await ctx.send(msg)
         
-async def searchRecord(ctx, mapname, track):
+async def searchRecord(ctx, mapname, track, style):
     conn = mysql.connector.connect(**db)
     cursor = conn.cursor()
+    
+    if not style:
+        styleid = 0
+    else:
+        styleid = getStyleID(style)
+        if styleid == -1:
+            await ctx.send("Error: Unknown style")
+            return
 
-    sql = "SELECT time, jumps, sync, strafes, date, map, u.name, p.auth FROM " + TABLE_PREFIX + "playertimes p, " + TABLE_PREFIX + "users u WHERE map = %s AND track = %s AND style = 0 AND u.auth = p.auth ORDER BY time ASC LIMIT 1"
-    cursor.execute(sql, (mapname, track))
+    sql = "SELECT time, jumps, sync, strafes, date, map, u.name, p.auth FROM " + TABLE_PREFIX + "playertimes p, " + TABLE_PREFIX + "users u WHERE map = %s AND track = %s AND style = %s AND u.auth = p.auth ORDER BY time ASC LIMIT 1"
+    cursor.execute(sql, (mapname, track, styleid))
     results = cursor.fetchone()
     if results:
-        await printRecord(ctx, results, track)
+        await printRecord(ctx, results, track, styleid)
     else:
-        sql = "SELECT time, jumps, sync, strafes, date, map, u.name, p.auth FROM " + TABLE_PREFIX + "playertimes p, " + TABLE_PREFIX + "users u WHERE map LIKE %s AND track = %s AND style = 0 AND u.auth = p.auth ORDER BY time ASC LIMIT 1"  
-        cursor.execute(sql, ('%' + mapname + '%', track))
+        sql = "SELECT time, jumps, sync, strafes, date, map, u.name, p.auth FROM " + TABLE_PREFIX + "playertimes p, " + TABLE_PREFIX + "users u WHERE map LIKE %s AND track = %s AND style = %s AND u.auth = p.auth ORDER BY time ASC LIMIT 1"  
+        cursor.execute(sql, ('%' + mapname + '%', track, styleid))
         results = cursor.fetchone()
         if results:
-            await printRecord(ctx, results, track)
+            await printRecord(ctx, results, track, styleid)
         else:
             await ctx.send("No records found for " + mapname)
     
     conn.close()
     cursor.close()
         
-async def printRecord(ctx, results, track):      
+async def printRecord(ctx, results, track, style):      
     time = results[0]
     jumps = str(results[1])
     sync = str(results[2])
@@ -176,10 +196,10 @@ async def printRecord(ctx, results, track):
     link = "http://www.steamcommunity.com/profiles/" + str(steamid.as_64)
     
     if STATS_PAGE:
-        statslink = STATS_PAGE + "/?track=" + str(track) + "&map=" + mapname
-        embed=discord.Embed(title=trackName + " Record", description="[" + mapname + "](" + statslink + ")", color=trackColour)
+        statslink = STATS_PAGE + "/?track=" + str(track) + "&map=" + mapname + "&style=" + str(style)
+        embed=discord.Embed(title=trackName + " Record - " + getStyleName(style), description="[" + mapname + "](" + statslink + ")", color=trackColour)
     if not STATS_PAGE:
-        embed=discord.Embed(title=trackName + " Record", description=mapname, color=trackColour)
+        embed=discord.Embed(title=trackName + " Record - " + getStyleName(style), description=mapname, color=trackColour)
         
     embed.set_thumbnail(url=ICON)
     embed.set_footer(text="Join: steam://connect/" + IP + ":" + str(PORT))
@@ -223,5 +243,14 @@ def formatSteamID3(arg):
     steamid3 = str(my_id.as_32)
     
     return steamid3
-    
+ 
+def getStyleID(style):
+    for i in range(len(alias)):
+        if style.lower() in alias[i]:
+            return i      
+    return -1        
+
+def getStyleName(styleid):
+    return stylename[styleid]
+
 bot.run(TOKEN)
