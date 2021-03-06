@@ -5,7 +5,8 @@ Current features:
 - !wr
 - !bwr
 - !ssj
-- Bot status shows server player count
+- !records
+- Bot status shows server current map
 
 ## CONFIG
 
@@ -26,3 +27,5 @@ Current features:
 }
 
 ```
+
+Configure styles.json to match your shavit-styles.cfg ordering. 
