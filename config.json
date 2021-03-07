@@ -4,7 +4,6 @@
     "embed_icon": "https://site.com/logo.png",
     "server_ip": "XXX.XXX.XXX.XXX",
     "server_port": 27015,
-    "server_name": "",
     "db_ip": "XXX.XXX.XXX.XXX",
     "db_database": "database",
     "db_user": "username",
