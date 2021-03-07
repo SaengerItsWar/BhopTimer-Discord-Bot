@@ -224,6 +224,20 @@ async def ssj_cooldown(ctx, error):
     if isinstance(error, commands.CommandOnCooldown):
         msg = 'This command is on cooldown, please try again in {:.2f}s'.format(error.retry_after)
         await ctx.send(msg)
+     
+@bot.command()
+async def top(ctx):
+    conn = mysql.connector.connect(**db)
+    cursor = conn.cursor()
+    sql = "SELECT name, points from users ORDER BY points DESC LIMIT 10"
+    cursor.execute(sql)
+    results = cursor.fetchall()
+    embed=discord.Embed(title="Top Players", color=0xda190b)
+    embed.add_field(name="Rank", value=formatRank(results), inline=True)
+    embed.add_field(name="Name", value=formatName(results), inline=True)
+    embed.add_field(name="Points", value=formatPoints(results), inline=True)
+    
+    await ctx.send(embed=embed)
         
 def formatSeconds(time):
     minutes = time / 60
@@ -252,5 +266,23 @@ def getStyleID(style):
 
 def getStyleName(styleid):
     return stylename[styleid]
+ 
+ def formatRank(results):
+    rank = ""
+    for count, row in enumerate(results, 1):
+        rank += "#" + str(count) + "\n"
+    return rank
+    
+def formatName(results):
+    name = ""
+    for count, row in enumerate(results, 1):
+        name += str(row[0]) + "\n"
+    return name
+    
+def formatPoints(results):
+    points = ""
+    for count, row in enumerate(results, 1):
+        points += str(row[1]) + "\n"
+    return points
 
 bot.run(TOKEN)
