@@ -6,6 +6,7 @@ Current features:
 - !bwr
 - !ssj
 - !records
+- !top
 - Bot status shows server current map
 
 ## CONFIG
