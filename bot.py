@@ -24,17 +24,20 @@ with open("styles.json") as styles:
 with open("config.json") as cfg:
     config = json.load(cfg)  
     
-TOKEN        = config["bot_token"]
-PREFIX       = config["command_prefix"]
-ICON         = config["embed_icon"]
-IP           = config["server_ip"]
-PORT         = config["server_port"]
-DB_IP        = config["db_ip"]
-DB_DB        = config["db_database"]
-DB_USER      = config["db_user"]
-DB_PASS      = config["db_pass"]
-TABLE_PREFIX = config["table_prefix"]
-STATS_PAGE   = config["webstats_url"]
+TOKEN            = config["bot_token"]
+PREFIX           = config["command_prefix"]
+ICON             = config["embed_icon"]
+IP               = config["server_ip"]
+PORT             = config["server_port"]
+DB_IP            = config["db_ip"]
+DB_DB            = config["db_database"]
+DB_USER          = config["db_user"]
+DB_PASS          = config["db_pass"]
+TABLE_PREFIX     = config["table_prefix"]
+STATS_PAGE       = config["webstats_url"]
+SSJ_COOLDOWN     = config["ssj_cooldown"]
+RECORDS_COOLDOWN = config["records_cooldown"]
+WR_COOLDOWN      = config["wr_cooldown"]
 
 bot = commands.Bot(command_prefix=PREFIX)
 SERVER_ADDRESS = (IP, PORT)
@@ -57,22 +60,41 @@ async def status_task():
         await bot.change_presence(activity=discord.Game(name="{map}".format(**info)))
     
 @bot.command(aliases=['record', 'mtop', 'maptop', 'maprecord'])
+@commands.cooldown(1, WR_COOLDOWN, commands.BucketType.user)
 async def wr(ctx, arg, arg2=None):      
     await searchRecord(ctx, arg, 0, arg2)
+    
+@wr.error
+async def wr_cooldown(ctx, error):
+    if isinstance(error, commands.CommandOnCooldown):
+        await cooldownMessage(ctx, error)
 
 @bot.command(aliases=['brecord', 'btop', 'bonustop', 'bonusrecord'])
+@commands.cooldown(1, WR_COOLDOWN, commands.BucketType.user)
 async def bwr(ctx, arg, arg2=None):
     await searchRecord(ctx, arg, 1, arg2)
-
+    
+@bwr.error
+async def bwr_cooldown(ctx, error):
+    if isinstance(error, commands.CommandOnCooldown):
+        await cooldownMessage(ctx, error)
+   
 @bot.command()
-@commands.cooldown(1, 15, commands.BucketType.user)
-async def records(ctx, arg):
+@commands.cooldown(1, RECORDS_COOLDOWN, commands.BucketType.user)
+async def records(ctx, arg, arg2=None):
     steamid3 = formatSteamID3(arg)
-
-    sql = "SELECT time, map FROM(SELECT a.map, a.time, COUNT(b.map) + 1 AS rank FROM playertimes a LEFT JOIN playertimes b ON a.time > b.time AND a.map = b.map AND a.style = b.style AND a.track = b.track WHERE a.auth = %s AND a.style = 0 AND a.track = 0 GROUP BY a.map, a.time, a.jumps, a.id, a.points  ORDER BY a.map ASC) AS t WHERE rank = 1 ORDER BY map ASC;"
+    if not arg2:
+        style = 0
+    else:
+        style = getStyleID(arg2)
+        if style == -1:
+            await ctx.send("Error: Unknown style")
+            return
+        
+    sql = "SELECT time, map FROM(SELECT a.map, a.time, COUNT(b.map) + 1 AS rank FROM playertimes a LEFT JOIN playertimes b ON a.time > b.time AND a.map = b.map AND a.style = b.style AND a.track = b.track WHERE a.auth = %s AND a.style = %s AND a.track = 0 GROUP BY a.map, a.time, a.jumps, a.id, a.points  ORDER BY a.map ASC) AS t WHERE rank = 1 ORDER BY map ASC;"
     conn = mysql.connector.connect(**db)
     cursor = conn.cursor()
-    cursor.execute(sql, (steamid3,))
+    cursor.execute(sql, (steamid3, style))
     results = cursor.fetchall()
     
     sql = "SELECT name FROM users WHERE auth = %s;"
@@ -100,7 +122,7 @@ async def records(ctx, arg):
     
     emojis = ['\u25c0', '\u25b6']
     
-    embed=discord.Embed(title="MAP RECORDS\nPlayer: " + player[0], description=text[0], color=0xda190b)
+    embed=discord.Embed(title="MAP RECORDS - " + getStyleName(style) + "\nPlayer: " + player[0], description=text[0], color=0xda190b)
     msg = await ctx.send(embed=embed) 
     
     def check(reaction, user):
@@ -115,21 +137,21 @@ async def records(ctx, arg):
         if str(reaction.emoji) == "\u25c0":  
             if j == 0:
                 j = pages - 1
-                embed=discord.Embed(title="MAP RECORDS\nPlayer: " + player[0], description=text[j], color=0xda190b)
+                embed=discord.Embed(title="MAP RECORDS - " + getStyleName(style) + "\nPlayer: " + player[0], description=text[j], color=0xda190b)
                 await msg.edit(embed=embed)
             else:
                 j -= 1
-                embed=discord.Embed(title="MAP RECORDS\nPlayer: " + player[0], description=text[j], color=0xda190b)
+                embed=discord.Embed(title="MAP RECORDS - " + getStyleName(style) + "\nPlayer: " + player[0], description=text[j], color=0xda190b)
                 await msg.edit(embed=embed)
             await msg.clear_reactions()
         if str(reaction.emoji) == "\u25b6":
             if j == pages - 1:
                 j = 0
-                embed=discord.Embed(title="MAP RECORDS\nPlayer: " + player[0], description=text[j], color=0xda190b)
+                embed=discord.Embed(title="MAP RECORDS - " + getStyleName(style) + "\nPlayer: " + player[0], description=text[j], color=0xda190b)
                 await msg.edit(embed=embed)
             else:
                 j += 1
-                embed=discord.Embed(title="MAP RECORDS\nPlayer: " + player[0], description=text[j], color=0xda190b)
+                embed=discord.Embed(title="MAP RECORDS - " + getStyleName(style) + "\nPlayer: " + player[0], description=text[j], color=0xda190b)
                 await msg.edit(embed=embed)
             await msg.clear_reactions()
     
@@ -139,8 +161,7 @@ async def records(ctx, arg):
 @records.error
 async def records_cooldown(ctx, error):
     if isinstance(error, commands.CommandOnCooldown):
-        msg = 'This command is on cooldown, please try again in {:.2f}s'.format(error.retry_after)
-        await ctx.send(msg)
+        await cooldownMessage(ctx, error)
         
 async def searchRecord(ctx, mapname, track, style):
     conn = mysql.connector.connect(**db)
@@ -212,19 +233,6 @@ async def printRecord(ctx, results, track, style):
     await ctx.send(embed=embed)
 
 @bot.command()
-@commands.cooldown(1, 15, commands.BucketType.user)
-async def ssj(ctx):
-    num = random.randint(480,700)       
-    
-    await ctx.send(ctx.message.author.mention + " has a SSJ of " + str(num))
-   
-@ssj.error
-async def ssj_cooldown(ctx, error):
-    if isinstance(error, commands.CommandOnCooldown):
-        msg = 'This command is on cooldown, please try again in {:.2f}s'.format(error.retry_after)
-        await ctx.send(msg)
-     
-@bot.command()
 async def top(ctx):
     conn = mysql.connector.connect(**db)
     cursor = conn.cursor()
@@ -237,6 +245,18 @@ async def top(ctx):
     embed.add_field(name="Points", value=formatPoints(results), inline=True)
     
     await ctx.send(embed=embed)
+
+@bot.command()
+@commands.cooldown(1, SSJ_COOLDOWN, commands.BucketType.user)
+async def ssj(ctx):
+    num = random.randint(480,700)       
+    
+    await ctx.send(ctx.message.author.mention + " has a SSJ of " + str(num))
+   
+@ssj.error
+async def ssj_cooldown(ctx, error):
+    if isinstance(error, commands.CommandOnCooldown):
+        await cooldownMessage(ctx, error)
         
 def formatSeconds(time):
     minutes = time / 60
@@ -265,8 +285,8 @@ def getStyleID(style):
 
 def getStyleName(styleid):
     return stylename[styleid]
- 
- def formatRank(results):
+    
+def formatRank(results):
     rank = ""
     for count, row in enumerate(results, 1):
         rank += "#" + str(count) + "\n"
@@ -284,4 +304,8 @@ def formatPoints(results):
         points += str(row[1]) + "\n"
     return points
 
+async def cooldownMessage(ctx, error):
+    msg = 'This command is on cooldown, please try again in {:.2f}s'.format(error.retry_after)
+    await ctx.send(msg)
+        
 bot.run(TOKEN)
