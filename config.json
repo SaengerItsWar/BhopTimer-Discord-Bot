@@ -9,5 +9,8 @@
     "db_user": "username",
     "db_pass": "password",
     "table_prefix": "",
-    "webstats_url": "https://mysite.com/stats"
+    "webstats_url": "https://mysite.com/stats",
+	"ssj_cooldown": "15",
+	"records_cooldown": "10",
+	"wr_cooldown": "0"
 }
