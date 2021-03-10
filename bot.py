@@ -39,7 +39,10 @@ SSJ_COOLDOWN     = config["ssj_cooldown"]
 RECORDS_COOLDOWN = config["records_cooldown"]
 WR_COOLDOWN      = config["wr_cooldown"]
 
-bot = commands.Bot(command_prefix=PREFIX)
+help_command = commands.DefaultHelpCommand(
+    no_category = 'Commands'
+)
+bot = commands.Bot(command_prefix=PREFIX, help_command=help_command)
 SERVER_ADDRESS = (IP, PORT)
 
 db = {
@@ -58,8 +61,8 @@ async def status_task():
     with valve.source.a2s.ServerQuerier(SERVER_ADDRESS) as server:
         info = server.info()
         await bot.change_presence(activity=discord.Game(name="{map}".format(**info)))
-    
-@bot.command(aliases=['record', 'mtop', 'maptop', 'maprecord'])
+  
+@bot.command(aliases=['record', 'mtop', 'maptop', 'maprecord'], brief="Gets the map record for a given map and style", usage="[map] <style>")
 @commands.cooldown(1, WR_COOLDOWN, commands.BucketType.user)
 async def wr(ctx, arg, arg2=None):      
     await searchRecord(ctx, arg, 0, arg2)
@@ -69,7 +72,7 @@ async def wr_cooldown(ctx, error):
     if isinstance(error, commands.CommandOnCooldown):
         await cooldownMessage(ctx, error)
 
-@bot.command(aliases=['brecord', 'btop', 'bonustop', 'bonusrecord'])
+@bot.command(aliases=['brecord', 'btop', 'bonustop', 'bonusrecord'], brief="Gets the bonus record for a given map and style", usage="[map] <style>")
 @commands.cooldown(1, WR_COOLDOWN, commands.BucketType.user)
 async def bwr(ctx, arg, arg2=None):
     await searchRecord(ctx, arg, 1, arg2)
@@ -79,7 +82,7 @@ async def bwr_cooldown(ctx, error):
     if isinstance(error, commands.CommandOnCooldown):
         await cooldownMessage(ctx, error)
    
-@bot.command()
+@bot.command(brief="Gets all records for player of given Steam ID", usage="[steamid]")
 @commands.cooldown(1, RECORDS_COOLDOWN, commands.BucketType.user)
 async def records(ctx, arg, arg2=None):
     steamid3 = formatSteamID3(arg)
@@ -232,7 +235,7 @@ async def printRecord(ctx, results, track, style):
     
     await ctx.send(embed=embed)
 
-@bot.command()
+@bot.command(brief="Shows the top 10 ranked players")
 async def top(ctx):
     conn = mysql.connector.connect(**db)
     cursor = conn.cursor()
@@ -246,7 +249,7 @@ async def top(ctx):
     
     await ctx.send(embed=embed)
 
-@bot.command()
+@bot.command(brief="Randomly generates an SSJ")
 @commands.cooldown(1, SSJ_COOLDOWN, commands.BucketType.user)
 async def ssj(ctx):
     num = random.randint(480,700)       
