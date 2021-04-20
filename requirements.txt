@@ -1,4 +1,4 @@
 discord
-python-valve
+python-a2s
 steam
 mysql
