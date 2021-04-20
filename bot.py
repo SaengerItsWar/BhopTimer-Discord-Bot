@@ -1,6 +1,6 @@
 import discord
 import mysql.connector
-import valve.source.a2s
+import a2s
 import asyncio
 import math
 import json
@@ -58,9 +58,7 @@ async def on_ready():
  
 @tasks.loop(seconds=120.0)
 async def status_task():
-    with valve.source.a2s.ServerQuerier(SERVER_ADDRESS) as server:
-        info = server.info()
-        await bot.change_presence(activity=discord.Game(name="{map}".format(**info)))
+    await bot.change_presence(activity=discord.Game(name=a2s.info(SERVER_ADDRESS, timeout=120).map_name))
   
 @bot.command(aliases=['record', 'mtop', 'maptop', 'maprecord'], brief="Gets the map record for a given map and style", usage="[map] <style>")
 @commands.cooldown(1, WR_COOLDOWN, commands.BucketType.user)
